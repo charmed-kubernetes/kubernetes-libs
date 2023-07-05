@@ -1,0 +1,8 @@
+name: kubernetes-libs
+display-name: Kubernetes Libraries
+summary: A collection of libraries for Canonical Kubernetes
+description: |
+  A placeholder charm that contains charm libraries useful to interact
+  with the components of Canonical Kubernetes.
+source: https://github.com/charmed-kubernetes/kubernetes-libs
+issues: https://bugs.launchpad.net/kubernetes-libs
