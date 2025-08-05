@@ -99,7 +99,7 @@ class EtcdConsumerEvents(ObjectEvents):
     tls_available = EventSource(EtcdTLSAvailable)
 
 
-class EtcdRequiresProtocol(Object):
+class EtcdRequiresProtocol:
     """Protocol for the etcd requires interface.
 
     This class defines the protocol for the etcd requires interface.
@@ -108,16 +108,13 @@ class EtcdRequiresProtocol(Object):
     """
 
     def __init__(self, charm, endpoint="etcd"):
-        super().__init__(charm, f"relation-{endpoint}")
         self.charm = charm
         self.endpoint = endpoint
 
     @property
     def is_ready(self) -> bool:
         """Check if the relation is available and emit the appropriate event."""
-        raise NotImplementedError(
-            "The is_ready method must be implemented by the subclass."
-        )
+        raise NotImplementedError("The is_ready method must be implemented by the subclass.")
 
     def get_connection_string(self) -> str:
         """Return the connection string for etcd."""
@@ -136,7 +133,7 @@ class EtcdRequiresProtocol(Object):
         pass
 
 
-class EtcdReactiveRequires(EtcdRequiresProtocol):
+class EtcdReactiveRequires(Object, EtcdRequiresProtocol):
     """Requires side of the etcd interface.
 
     This class is a translation interface that wraps the requires side
@@ -147,7 +144,8 @@ class EtcdReactiveRequires(EtcdRequiresProtocol):
     on = EtcdConsumerEvents()
 
     def __init__(self, charm, endpoint="etcd"):
-        super().__init__(charm, endpoint)
+        Object.__init__(self, charm, f"relation-{endpoint}")
+        EtcdRequiresProtocol.__init__(self, charm, endpoint)
 
         self.state.set_default(
             connected=False, available=False, tls_available=False, connection_string=""
@@ -201,9 +199,7 @@ class EtcdReactiveRequires(EtcdRequiresProtocol):
         if self.relation:
             if self.get_connection_string():
                 cert = self.get_client_credentials()
-                if all(
-                    cert.get(key) for key in ["client_cert", "client_key", "client_ca"]
-                ):
+                if all(cert.get(key) for key in ["client_cert", "client_key", "client_ca"]):
                     return True
         return False
 
@@ -240,11 +236,7 @@ class EtcdReactiveRequires(EtcdRequiresProtocol):
 
     def save_client_credentials(self, ca_path, cert_path, key_path):
         """Save all the client certificates for etcd to local files."""
-        credentials = {
-            "client_key": key_path,
-            "client_cert": cert_path,
-            "client_ca": ca_path,
-        }
+        credentials = {"client_key": key_path, "client_cert": cert_path, "client_ca": ca_path}
         for key, path in credentials.items():
             self._save_remote_data(key, path)
 
